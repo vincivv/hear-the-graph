@@ -188,6 +188,7 @@ Modern, calm, high-contrast, and specific to the subject. Signature element: the
 | `PORT` | Port the server listens on (Docker) | `8080` in the container, `8000` locally |
 | `FIXTURE_STEP_DELAY` | Fixture mode only: pause after each pipeline step so the progress view is visible in a demo | `0.4` |
 | `GEMINI_MAX_CONCURRENCY` | Parallel Gemini requests | `4` |
+| `QA_DEADLINE_SECONDS` | Seconds a question waits for Gemini's choice before the rule chooser answers | `12` |
 | `LIMIT_DOCUMENTS_PER_HOUR`, `LIMIT_QUESTIONS_PER_HOUR`, `LIMIT_RETRIES_PER_HOUR`, `LIMIT_DOCUMENTS_PER_DAY` | Request limits per visitor per hour, and new files per day for the server; 0 turns a limit off | 20, 120, 30, 500 |
 | `DETECT_IN_IMAGES` | `1` asks Gemini for chart boxes in a single uploaded image too; by default an image is read whole, saving one request | `0` |
 

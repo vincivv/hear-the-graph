@@ -137,6 +137,24 @@ def test_gemini_failure_falls_back_to_rules(peak):
     assert a.chooser == "rules" and "could not be reached" in a.chooser_note and a.operation == "max"
 
 
+def test_slow_gemini_choice_falls_back_to_rules_in_time(peak, monkeypatch):
+    import threading
+    import time
+
+    release = threading.Event()
+
+    class Slow:
+        def choose_operation(self, *a):
+            release.wait(5)
+            return FakeProvider("min", {}).choose_operation(*a)
+
+    monkeypatch.setenv("QA_DEADLINE_SECONDS", "1")
+    t0 = time.monotonic()
+    a = answer_question(peak, "where is the maximum?", None, Slow(), "uploads")
+    release.set()
+    assert time.monotonic() - t0 < 3
+    assert a.chooser == "rules" and "slow" in a.chooser_note and a.operation == "max" and "45 mol/s" in a.answer
+
 
 def test_rules_match_threshold_and_future_questions(peak):
     op, args = rule_choose(peak, "At which step does the rate first go above 30 mol/s?")

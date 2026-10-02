@@ -12,7 +12,10 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 
 from ..models import Answer, Chart, Series
 from .fmt import join_words
@@ -22,6 +25,18 @@ from .summary import at, crossings, summarize, x_name, x_text, y_text
 log = logging.getLogger("hear.qa")
 
 UNCERTAIN = 0.7
+
+# A student is waiting for the answer: if Gemini has not chosen the operation by then (busy,
+# backing off, or waiting out a per-minute quota), the rule chooser answers instead. The call
+# keeps running and caches its choice, so asking the same question again uses Gemini's.
+_CHOOSER_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="qa-chooser")
+
+
+def chooser_deadline() -> float:
+    try:
+        return max(1.0, float(os.getenv("QA_DEADLINE_SECONDS", "12") or 12))
+    except ValueError:
+        return 12.0
 
 
 class CannotAnswer(Exception):
@@ -566,11 +581,15 @@ def answer_question(chart: Chart, question: str, series: str | None, provider, b
         try:
             ctx_text = context(chart)
             ctx_hash = hashlib.sha256(ctx_text.encode()).hexdigest()
-            name, args, meta = provider.choose_operation(question, ctx_text, declarations(chart), ctx_hash, bucket)
+            job = _CHOOSER_POOL.submit(provider.choose_operation, question, ctx_text, declarations(chart), ctx_hash, bucket)
+            name, args, meta = job.result(timeout=chooser_deadline())
             chooser = "gemini"
             chooser_note = "Gemini chose the calculation; code computed the answer."
             if meta.source == "cache":
                 chooser_note += " (Saved choice from an earlier identical question.)"
+        except FutureTimeout:
+            log.warning("gemini chooser slower than %.0f s; rules answer", chooser_deadline())
+            chooser_note = "Gemini was slow to answer, so simple rules matched the question."
         except Exception as e:  # fall back to rules, and say so
             log.warning("gemini chooser failed: %s", e)
             chooser_note = ("Gemini was busy, so simple rules matched the question." if getattr(e, "busy", False)
