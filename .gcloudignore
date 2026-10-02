@@ -1,0 +1,20 @@
+# Files not uploaded by `gcloud run deploy --source .` (secrets, local data, dev-only files).
+.gcloudignore
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.data
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+tests
+test_data
+eval
+tools
+docs
+.DS_Store
+.claude
