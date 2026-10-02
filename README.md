@@ -104,7 +104,7 @@ gcloud run deploy hear-the-graph --source . --project $PROJECT --region $REGION 
 
 A public URL can be used by anyone, so the app limits each visitor (by IP address) to 20 new files, 120 questions and 30 retries an hour, and the server to 500 new files a day (`LIMIT_*` in `.env.example`; 0 turns a limit off). Set a budget alert on the project as well.
 
-`--source .` builds the `Dockerfile` with Cloud Build; `.gcloudignore` keeps `.env`, tests and eval data out of the upload. These commands have been run: the service deployed and served the samples from the demo cache, a live upload read on Vertex AI, and questions. For a public demo URL, lower the limits with `--set-env-vars` (for example `LIMIT_DOCUMENTS_PER_HOUR=15`). Opening a sample counts as a document, so keep that limit above the number of samples.
+`--source .` builds the `Dockerfile` with Cloud Build; `.gcloudignore` keeps `.env`, tests and eval data out of the upload. These commands have been run: the service deployed and served the samples from the demo cache, a live upload read on Vertex AI, and questions. The limits are set per deployment with `--update-env-vars`; the hackathon demo runs with high limits (200 documents, 2000 questions and 500 retries per visitor per hour, 2000 documents a day) so judges never hit them, and the $10 budget alert guards the credit. Opening a sample counts as a document.
 
 Docker (the container listens on `$PORT`, default 8080):
 
