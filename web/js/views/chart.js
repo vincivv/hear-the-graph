@@ -4,6 +4,9 @@ import { api } from "../api.js";
 import { announce } from "../announce.js";
 import { esc, chartFormat, fmtNum, levelBadge, levelIcon, typeName, LEVEL_TEXT } from "../util.js";
 import { ChartPlayer, isUncertain } from "../player.js";
+import { VoiceInput, canListen } from "../listen.js";
+
+const MIC_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 
 const OP_TEXT = {
   max: "found the highest value", min: "found the lowest value", value_at: "looked up the value at that point",
@@ -194,8 +197,10 @@ export async function renderChart(ctx, id) {
             <label for="question" class="visually-hidden">Your question about this chart</label>
             <input type="text" id="question" name="question" autocomplete="off" maxlength="500" aria-describedby="ask-help" placeholder="Where is the maximum?">
             <button type="submit" class="btn btn-primary">Ask</button>
+            <button type="button" class="btn btn-secondary btn-voice" id="ask-voice" hidden>${MIC_SVG}<span class="voice-label">Ask by voice</span></button>
           </form>
-          <p id="ask-help" class="small soft">Answers are calculated from the extracted data, never written freely by the AI.</p>
+          <p id="voice-status" class="voice-status small" hidden></p>
+          <p id="ask-help" class="small soft">Answers are calculated from the extracted data, never written freely by the AI.<span id="voice-help" hidden> To ask by voice, press Ask by voice (or <kbd>V</kbd> while the chart has focus) and speak after the rising tone. Your browser turns speech into text (in Chrome, through Google's speech service).</span></p>
           <ul class="suggestions" aria-label="Example questions">${suggestions(chart).map((q) => `<li><button type="button" data-q="${esc(q)}">${esc(q)}</button></li>`).join("")}</ul>
           <ol class="answers" id="answers" reversed></ol>
         </section>
@@ -232,6 +237,7 @@ export async function renderChart(ctx, id) {
   const player = new ChartPlayer(main.querySelector("#player"), chart, {
     imageUrl: api.chartImage(chart.id),
     caption: `Chart image from page ${chart.page} of ${chart.document.filename}.`,
+    onAsk: canListen() ? () => voice?.toggle() : null,
     onPoint: (si, pi) => {
       lastRows.forEach((r) => r.classList.remove("current"));
       lastRows = [...main.querySelectorAll(`tr[data-s="${si}"][data-p="${pi}"]`)];
@@ -261,9 +267,10 @@ export async function renderChart(ctx, id) {
   const form = main.querySelector("#ask-form");
   const input = main.querySelector("#question");
   const answers = main.querySelector("#answers");
-  async function ask(q) {
+  async function ask(q, { spoken = false } = {}) {
     q = q.trim();
     if (!q) { input.focus(); announce("Type a question first."); return; }
+    if (voice?.listening) voice.abort();
     const btn = form.querySelector("button");
     btn.disabled = true;
     btn.textContent = "Working…";
@@ -271,11 +278,12 @@ export async function renderChart(ctx, id) {
       const a = await api.ask(chart.id, q, null);
       answers.insertAdjacentHTML("afterbegin", answerItem(a));
       const conf = a.answerable && a.confidence !== "high" ? ` ${LEVEL_TEXT[a.confidence]}. ${a.confidence_note}` : "";
-      announce(`${a.answer}${conf}`);
+      // A spoken question is repeated first, so a misheard question is noticed.
+      announce(`${spoken ? `You asked: ${q}. ` : ""}${a.answer}${conf}`);
       input.value = "";
     } catch (e) {
       answers.insertAdjacentHTML("afterbegin", `<li><span class="q">You asked: ${esc(q)}</span><span class="a">${esc(e.message)}</span></li>`);
-      announce(e.message, { urgent: true });
+      announce(`${spoken ? `You asked: ${q}. ` : ""}${e.message}`, { urgent: true });
     } finally {
       btn.disabled = false;
       btn.textContent = "Ask";
@@ -287,5 +295,40 @@ export async function renderChart(ctx, id) {
     if (b) ask(b.dataset.q);
   });
 
-  return () => player.destroy();
+  // Ask by voice
+  const voiceBtn = main.querySelector("#ask-voice");
+  const voiceStatus = main.querySelector("#voice-status");
+  let voice = null;
+  if (canListen()) {
+    voiceBtn.hidden = false;
+    main.querySelector("#voice-help").hidden = false;
+    const label = voiceBtn.querySelector(".voice-label");
+    voice = new VoiceInput({
+      sound: player.sound,
+      onStart: () => {
+        voiceBtn.classList.add("listening");
+        label.textContent = "Stop listening";
+        voiceStatus.hidden = false;
+        voiceStatus.textContent = "Listening. Speak your question.";
+      },
+      onInterim: (text) => { input.value = text; },
+      onEnd: () => {
+        voiceBtn.classList.remove("listening");
+        label.textContent = "Ask by voice";
+        voiceStatus.hidden = true;
+      },
+      onFinal: (text) => { input.value = text; ask(text, { spoken: true }); },
+      onError: (msg) => {
+        voiceStatus.hidden = false;
+        voiceStatus.textContent = msg;
+        announce(msg, { urgent: true });
+      },
+    });
+    voiceBtn.addEventListener("click", () => {
+      player.pause({ silent: true });
+      voice.toggle();
+    });
+  }
+
+  return () => { voice?.abort(); player.destroy(); };
 }

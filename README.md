@@ -127,7 +127,7 @@ Configuration is environment variables only (see [`.env.example`](.env.example) 
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                      # 208 tests: logic, API, live path with a fake client, Playwright end to end with axe
+pytest                      # 214 tests: logic, API, live path with a fake client, Playwright end to end with axe
 python eval/run_eval.py     # writes eval/results.md and eval/results.json
 python tools/build_fixtures.py   # rebuilds fixture data from the answer keys
 python tools/replay_cache.py     # replays cached live readings through the trust layer, no API calls
@@ -143,7 +143,8 @@ Built to be used from start to finish without sight or a mouse (SPEC section 11)
 
 - Semantic landmarks and headings, labels on every control, a skip link, visible focus (a yellow ring with an indigo edge, readable in both themes).
 - Everything spoken goes through ARIA live regions, the standard way a page speaks to screen readers such as VoiceOver, NVDA and JAWS. It has not yet been tested with screen reader users. The optional built-in voice (Web Speech API) is off by default so it never talks over a screen reader.
-- Single-key shortcuts (P play, S summary, C confidence, and Chart2Music's keys) only work while the chart has focus. A shortcut panel lists them.
+- Single-key shortcuts (P play, S summary, C confidence, V ask by voice, and Chart2Music's keys) only work while the chart has focus. A shortcut panel lists them.
+- **Ask by voice** (browsers with the Web Speech API: Chrome, Edge, Safari; hidden elsewhere). A rising tone means "speak now" (nothing is spoken, so the microphone does not pick up the screen reader), a falling tone means done, and the question is asked when you stop talking. The answer starts with "You asked: ..." so a misheard question is noticed. Spoken numbers ("step seven") work with the rule matcher too. Your browser does the speech to text; in Chrome that goes through Google's speech service.
 - Confidence is never color alone: a filled circle for high, a triangle for medium, a hollow diamond with "?" for uncertain, always with a word.
 - Reduced motion is respected: the playhead jumps from point to point instead of gliding.
 - axe-core reports **zero violations** on every screen, in light and dark themes, at desktop and phone widths (`tests/test_e2e.py`). No screen scrolls sideways at 320 px.

@@ -155,6 +155,79 @@ def test_question_is_answered_from_data(browser, base):
     page.close()
 
 
+# A stand-in for the browser's speech recognition: says window.__speech.text (interim first,
+# then final), or fails with window.__speech.error. Records how often it was started.
+FAKE_SPEECH = """
+window.__speech = { text: "what is the rate at step seven", error: "", starts: 0 };
+window.webkitSpeechRecognition = class {
+  start() {
+    window.__speech.starts++;
+    const s = window.__speech, res = (t, fin) => Object.assign([{ transcript: t }], { isFinal: fin });
+    setTimeout(() => {
+      this.onstart?.();
+      if (s.error) { this.onerror?.({ error: s.error }); this.onend?.(); return; }
+      const half = s.text.split(" ").slice(0, 3).join(" ");
+      this.onresult?.({ results: [res(half, false)] });
+      setTimeout(() => { this.onresult?.({ results: [res(s.text, true)] }); this.onend?.(); }, 150);
+    }, 50);
+  }
+  stop() {}
+  abort() { this.onerror?.({ error: "aborted" }); this.onend?.(); }
+};
+window.SpeechRecognition = window.webkitSpeechRecognition;
+"""
+
+
+def announced(page):
+    return page.text_content("#announcer") + " " + page.text_content("#announcer-assertive")
+
+
+def test_question_asked_by_voice(browser, base):
+    page = browser.new_page()
+    page.add_init_script(FAKE_SPEECH)
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#ask-voice", state="visible", timeout=20000)
+    assert page.is_visible("#voice-help")
+    page.click("#ask-voice")
+    page.wait_for_selector(".answers li")
+    # Spoken numbers reach the calculation, and the heard question is repeated before the answer.
+    assert page.text_content(".answers li .q") == "You asked: what is the rate at step seven"
+    assert "45 mol/s" in page.text_content(".answers li .a")
+    page.wait_for_function("document.querySelector('#announcer').textContent.startsWith('You asked: what is the rate')")
+    assert "45 mol/s" in page.text_content("#announcer")
+    assert page.text_content("#ask-voice") == "Ask by voice" and not page.is_visible("#voice-status")
+    page.close()
+
+
+def test_voice_shortcut_on_the_chart_and_microphone_errors(browser, base):
+    page = browser.new_page()
+    page.add_init_script(FAKE_SPEECH)
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#ask-voice", state="visible", timeout=20000)
+    page.evaluate("window.__speech.error = 'not-allowed'")
+    page.focus("[id$='-stage']")
+    page.keyboard.press("v")
+    page.wait_for_function("window.__speech.starts === 1")
+    page.wait_for_selector("#voice-status:not([hidden])")
+    assert "microphone is blocked" in page.text_content("#voice-status")
+    page.wait_for_function("document.querySelector('#announcer-assertive').textContent.includes('microphone is blocked')")
+    page.evaluate("window.__speech.error = 'no-speech'")
+    page.click("#ask-voice")
+    page.wait_for_function("document.querySelector('#voice-status').textContent.includes(\"didn't hear\")")
+    assert page.query_selector_all(".answers li") == []
+    page.close()
+
+
+def test_voice_button_hidden_without_speech_recognition(browser, base):
+    page = browser.new_page()
+    page.add_init_script("delete window.webkitSpeechRecognition; delete window.SpeechRecognition;")
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#ask-form", timeout=20000)
+    assert not page.is_visible("#ask-voice") and not page.is_visible("#voice-help")
+    assert page.get_attribute("#voice-shortcut", "hidden") is not None
+    page.close()
+
+
 def test_verification_view_marks_every_point(browser, base):
     page = browser.new_page()
     open_sample(page, base, "phone-photo")

@@ -485,8 +485,39 @@ OPS = {
 _NUM = r"[-−]?\d[\d,]*(?:\.\d+)?"
 
 
+_UNITS = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen "
+                                     "fourteen fifteen sixteen seventeen eighteen nineteen".split())}
+_TENS = {w: 10 * i for i, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split(), start=2)}
+_SCALES = {"hundred": 100, "thousand": 1000}
+_NUM_WORD = re.compile(r"\b(?:%s)(?:[\s-]+(?:%s))*\b" % (
+    "|".join([*_UNITS, *_TENS]), "|".join([*_UNITS, *_TENS, *_SCALES])))
+
+
+def _words_value(words: str) -> str:
+    total = current = 0
+    for w in re.split(r"[\s-]+", words):
+        if w in _UNITS:
+            current += _UNITS[w]
+        elif w in _TENS:
+            current += _TENS[w]
+        elif w == "hundred":
+            current = (current or 1) * 100
+        elif w == "thousand":
+            total, current = total + (current or 1) * 1000, 0
+    return str(total + current)
+
+
+def spoken_numbers(q: str) -> str:
+    """'step three', 'above thirty', 'two hundred fifty' -> digits: speech-to-text often writes numbers as words.
+
+    "and" never joins numbers ("between two and five" stays two numbers), and a bare "one" stays a
+    word ("which one is higher").
+    """
+    return _NUM_WORD.sub(lambda m: m.group(0) if m.group(0) == "one" else _words_value(m.group(0)), q)
+
+
 def rule_choose(chart: Chart, question: str) -> tuple[str, dict]:
-    q = question.lower().strip()
+    q = spoken_numbers(question.lower().strip())
     args: dict = {}
     for s in sorted(chart.series, key=lambda s: -len(s.name)):
         if s.name.lower() in q:

@@ -156,6 +156,19 @@ def test_slow_gemini_choice_falls_back_to_rules_in_time(peak, monkeypatch):
     assert a.chooser == "rules" and "slow" in a.chooser_note and a.operation == "max" and "45 mol/s" in a.answer
 
 
+def test_spoken_numbers_become_digits_for_the_rules(peak):
+    from app.pipeline.qa import spoken_numbers
+    assert spoken_numbers("what is the rate at step three") == "what is the rate at step 3"
+    assert spoken_numbers("two hundred fifty students") == "250 students"
+    assert spoken_numbers("twenty-five or twenty one") == "25 or 21"
+    assert spoken_numbers("between step two and step five") == "between step 2 and step 5"
+    assert spoken_numbers("which one is higher") == "which one is higher"
+    op, args = rule_choose(peak, "At which step does the rate first go above thirty?")
+    assert op == "x_where" and args["y"] == 30.0
+    a = answer_question(peak, "What is the rate at step seven?", None, None, "uploads")
+    assert a.operation == "value_at" and "45 mol/s" in a.answer
+
+
 def test_rules_match_threshold_and_future_questions(peak):
     op, args = rule_choose(peak, "At which step does the rate first go above 30 mol/s?")
     assert op == "x_where" and args["y"] == 30.0

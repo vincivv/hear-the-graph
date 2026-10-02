@@ -170,7 +170,7 @@ export async function renderLanding(ctx) {
       </article>
       <article class="tile">
         <h3>Ask in plain language</h3>
-        <p>"What is the value at 2021?" "Where do the lines cross?" Gemini picks the calculation; code computes the answer.</p>
+        <p>"What is the value at 2021?" "Where do the lines cross?" Type it or say it out loud. Gemini picks the calculation; code computes the answer.</p>
         <div class="art-chat" aria-hidden="true">
           <span class="bubble bubble-q">Where is the maximum?</span>
           <span class="bubble bubble-a">45 mol/s, at step 7. High confidence.</span>

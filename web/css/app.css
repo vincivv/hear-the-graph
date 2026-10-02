@@ -654,3 +654,14 @@ kbd { font: inherit; font-weight: 700; font-size: 0.9em; border: 1px solid var(-
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* Ask by voice */
+.btn-voice { display: inline-flex; align-items: center; gap: 0.45rem; }
+.btn-voice svg { width: 1.15rem; height: 1.15rem; flex: none; }
+.btn-voice.listening { background: var(--brand-soft); border-color: var(--brand); }
+.btn-voice.listening svg { color: var(--brand); }
+.voice-status { margin: 0.6rem 0 0; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .btn-voice.listening svg { animation: voice-pulse 1.1s ease-in-out infinite; }
+  @keyframes voice-pulse { 50% { transform: scale(1.18); } }
+}

@@ -6,6 +6,7 @@ import { renderHome } from "./views/home.js";
 import { renderLanding } from "./views/landing.js";
 import { renderDocument } from "./views/document.js";
 import { renderChart } from "./views/chart.js";
+import { canListen } from "./listen.js";
 
 const main = document.getElementById("main");
 let cleanup = null;
@@ -45,6 +46,7 @@ function paintVoice() {
   voiceBtn.innerHTML = `<span class="label-long">Built-in voice: ${on ? "on" : "off"}</span><span class="label-short">Voice: ${on ? "on" : "off"}</span>`;
 }
 if (!("speechSynthesis" in window)) voiceBtn.hidden = true;
+if (!canListen()) document.getElementById("voice-shortcut").hidden = true;
 voiceBtn.addEventListener("click", () => {
   setVoice(!isVoiceOn());
   paintVoice();

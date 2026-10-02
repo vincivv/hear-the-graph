@@ -194,6 +194,7 @@ export class ChartPlayer {
           { key: { key: "p" }, title: "Play or pause the whole graph", callback: () => self.toggle() },
           { key: { key: "s" }, title: "Read the summary", callback: () => self.readSummary() },
           { key: { key: "c" }, title: "Read the confidence", callback: () => self.readConfidence() },
+          ...(self.opts.onAsk ? [{ key: { key: "v" }, title: "Ask a question by voice", callback: () => { self.pause({ silent: true }); self.opts.onAsk(); } }] : []),
         ],
       },
     });
