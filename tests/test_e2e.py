@@ -174,7 +174,7 @@ window.webkitSpeechRecognition = class {
       setTimeout(() => { this.onresult?.({ results: [res(s.text, true)] }); this.onend?.(); }, 150);
     }, 50);
   }
-  stop() { if (window.__speech.stall) { window.__speech.stopped = true; this.onend?.(); } }
+  stop() { if (window.__speech.stall) { window.__speech.stopped = true; this.onresult?.({ results: [] }); this.onend?.(); } }
   abort() { this.onerror?.({ error: "aborted" }); this.onend?.(); }
 };
 window.SpeechRecognition = window.webkitSpeechRecognition;

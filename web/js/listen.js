@@ -71,7 +71,10 @@ export class VoiceInput {
         if (r.isFinal) final += r[0].transcript;
         else interim += r[0].transcript;
       }
-      heard = (final + interim).trim();
+      // Chrome can send an empty result when it is stopped; never let it erase what was heard.
+      const now = (final + interim).trim();
+      if (!now) return;
+      heard = now;
       this.cb.onInterim?.(heard);
       clearTimeout(this.quiet);
       this.quiet = setTimeout(() => this.stop(), QUIET_MS);
