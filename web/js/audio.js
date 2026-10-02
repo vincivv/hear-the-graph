@@ -17,12 +17,31 @@ export function pitchIndex(pct) {
 
 export function panFor(t) { return (t * 2 - 1) * 0.98; }
 
+// Volume of the graph's sound, chosen by the listener and remembered per browser. "Soft" is
+// about the old level; "Normal" is about 9 dB louder, measured with an offline render, because
+// with VoiceOver (which also lowers other sound while it speaks) the old level was too quiet.
+export const VOLUMES = { soft: 0.42, normal: 1.0, loud: 1.5 };
+let volume = "normal";
+try { volume = VOLUMES[localStorage.getItem("sound-volume")] ? localStorage.getItem("sound-volume") : "normal"; } catch (e) { /* storage blocked */ }
+const live = new Set(); // every Sound, so a change applies at once
+
+export function getVolume() { return volume; }
+
+export function setVolume(v) {
+  if (!VOLUMES[v]) return;
+  volume = v;
+  try { localStorage.setItem("sound-volume", v); } catch (e) { /* ignore */ }
+  for (const s of live) if (s.out) s.out.gain.setTargetAtTime(VOLUMES[v], s.ctx.currentTime, 0.03);
+}
+
 export class Sound {
-  constructor() {
+  constructor(vol = null) {
     this.ctx = null;
     this.out = null;
     this.noise = null;
     this.active = new Set();
+    this.vol = vol; // fixed volume (measurement); null follows the listener's setting
+    live.add(this);
   }
 
   ensure() {
@@ -30,9 +49,16 @@ export class Sound {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
       this.ctx = new AC();
+      // A light limiter, not the default compressor (threshold -24 dB, ratio 12), which flattened
+      // everything to about -25 dBFS. It only catches peaks so the louder settings never clip.
       const comp = this.ctx.createDynamicsCompressor();
+      comp.threshold.value = -6;
+      comp.knee.value = 4;
+      comp.ratio.value = 8;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.15;
       this.out = this.ctx.createGain();
-      this.out.gain.value = 0.7;
+      this.out.gain.value = VOLUMES[this.vol || volume];
       this.out.connect(comp);
       comp.connect(this.ctx.destination);
       const len = this.ctx.sampleRate;
@@ -54,7 +80,7 @@ export class Sound {
   }
 
   /** One note: pitch, stereo position, length in seconds. */
-  note(freq, pan, dur, { at = null, uncertain = false, level = 0.3, wave = "triangle" } = {}) {
+  note(freq, pan, dur, { at = null, uncertain = false, level = 0.5, wave = "triangle" } = {}) {
     if (!this.ensure()) return;
     const t = at ?? this.now + 0.01;
     const osc = this.ctx.createOscillator();
@@ -84,7 +110,7 @@ export class Sound {
     bp.Q.value = 1.2;
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(0.35, at + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.5, at + 0.03);
     g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
     const p = this.ctx.createStereoPanner();
     p.pan.setValueAtTime(pan, at);
@@ -123,21 +149,21 @@ export class Sound {
         pan.pan.linearRampToValueAtTime(p.pan, at(p.t));
       }
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.05);
-      g.gain.setValueAtTime(0.16, t0 + Math.max(0.06, remaining - 0.08));
+      g.gain.exponentialRampToValueAtTime(0.34, t0 + 0.05);
+      g.gain.setValueAtTime(0.34, t0 + Math.max(0.06, remaining - 0.08));
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + remaining + 0.02);
       osc.connect(g).connect(pan).connect(this.out);
       osc.start(t0);
       this._track(osc, t0 + remaining + 0.05);
       for (const p of pts) {
         if (p.t < from - 1e-9) continue;
-        this.note(p.freq, p.pan, 0.09, { at: at(p.t), uncertain: p.uncertain, level: 0.22, wave: "sine" });
+        this.note(p.freq, p.pan, 0.09, { at: at(p.t), uncertain: p.uncertain, level: 0.3, wave: "sine" });
       }
     } else {
       const slot = duration / Math.max(1, pts.length);
       for (const p of pts) {
         if (p.t < from - 1e-9) continue;
-        this.note(p.freq, p.pan, Math.min(0.5, slot * 0.8), { at: at(p.t), uncertain: p.uncertain, level: 0.3 });
+        this.note(p.freq, p.pan, Math.min(0.5, slot * 0.8), { at: at(p.t), uncertain: p.uncertain, level: 0.5 });
       }
     }
     return { t0, duration, from, end: t0 + remaining };

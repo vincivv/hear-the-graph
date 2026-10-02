@@ -224,6 +224,48 @@ def test_built_in_voice_finishes_before_the_sound_starts(browser, base):
     page.close()
 
 
+LOUDNESS = """async () => {
+  const { Sound, HERTZES, pitchIndex } = await import('/js/audio.js');
+  const ys = [5, 6, 10, 18, 29, 40, 45, 40, 29, 18, 10, 6, 5];
+  const pts = ys.map((y, i) => ({ t: i / 12, freq: HERTZES[pitchIndex(y / 45)], pan: i / 6 - 1, uncertain: false }));
+  const out = {};
+  for (const vol of ['soft', 'normal', 'loud']) {
+    const ctx = new OfflineAudioContext(2, 44100 * 5, 44100);
+    const s = new Sound(vol);
+    const AC = window.AudioContext;
+    window.AudioContext = function () { return ctx; };
+    try { s.ensure(); } finally { window.AudioContext = AC; }
+    s.sweep({ kind: 'line', points: pts }, 0, 4.3);
+    const buf = await ctx.startRendering();
+    let peak = 0, sum = 0, n = 0;
+    for (let c = 0; c < 2; c++) for (const v of buf.getChannelData(c)) { peak = Math.max(peak, Math.abs(v)); sum += v * v; n++; }
+    out[vol] = { rms: 20 * Math.log10(Math.sqrt(sum / n)), peak: 20 * Math.log10(peak) };
+  }
+  return out;
+}"""
+
+
+def test_sound_volume_levels_and_setting(browser, base):
+    page = browser.new_page()
+    page.goto(base + "/#/app")
+    page.wait_for_selector("button[data-sample]")
+    lv = page.evaluate(LOUDNESS)
+    # Measured on a line sweep: Normal is clearly louder than Soft (the old level), Loud louder
+    # still, and the limiter keeps every setting below full scale.
+    assert lv["normal"]["rms"] - lv["soft"]["rms"] >= 6
+    assert lv["loud"]["rms"] > lv["normal"]["rms"] + 2
+    assert all(v["peak"] < -0.5 for v in lv.values()), lv
+    page.click('button[data-sample="clean-line"]')
+    page.wait_for_selector("#summary-text", timeout=20000)
+    assert page.input_value("select[id$='-volume']") == "normal"
+    page.select_option("select[id$='-volume']", "loud")
+    page.reload()
+    page.wait_for_selector("#summary-text", timeout=20000)
+    assert page.input_value("select[id$='-volume']") == "loud"
+    page.evaluate("localStorage.removeItem('sound-volume')")
+    page.close()
+
+
 def test_question_is_answered_from_data(browser, base):
     page = browser.new_page()
     open_sample(page, base, "two-lines")

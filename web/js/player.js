@@ -3,10 +3,11 @@
 // through Chart2Music (which speaks each value into a live region).
 
 import { c2mChart } from "../vendor/chart2music.mjs";
-import { Sound, HERTZES, pitchIndex, panFor } from "./audio.js";
+import { Sound, HERTZES, pitchIndex, panFor, getVolume, setVolume } from "./audio.js";
 import { announce, announceThen, isVoiceOn, mirrorToVoice } from "./announce.js";
 import { esc, chartFormat, reducedMotion, typeName } from "./util.js";
 
+const VOLUME_OPTIONS = [["soft", "Soft"], ["normal", "Normal"], ["loud", "Loud"]];
 const SPEEDS = [["0.5", "Half speed"], ["1", "Normal speed"], ["1.5", "1.5 times"], ["2", "Double speed"]];
 let uid = 0;
 
@@ -145,6 +146,8 @@ export class ChartPlayer {
         ${hero ? "" : `<button type="button" class="btn btn-secondary explore-btn" id="${id}-explore">Explore points</button>
         <span class="field"><label for="${id}-speed">Speed</label>
           <select id="${id}-speed">${SPEEDS.map(([v, l]) => `<option value="${v}"${v === "1" ? " selected" : ""}>${l}</option>`).join("")}</select></span>
+        <span class="field"><label for="${id}-volume">Volume</label>
+          <select id="${id}-volume">${VOLUME_OPTIONS.map(([v, l]) => `<option value="${v}"${v === getVolume() ? " selected" : ""}>${l}</option>`).join("")}</select></span>
         ${multi ? `<span class="field"><label for="${id}-series">Series</label>
           <select id="${id}-series">${c.series.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join("")}</select></span>` : ""}
         <span class="spacer"></span>
@@ -156,13 +159,18 @@ export class ChartPlayer {
     this.el = {
       stage: $(`#${id}-stage`), svg: $("svg.overlay"), marks: $("g.marks"), head: $("g.playhead"),
       line: [...container.querySelectorAll(".playhead line")], dot: $(".playhead-dot"),
-      play: $(`#${id}-play`), explore: $(`#${id}-explore`), speed: $(`#${id}-speed`), series: $(`#${id}-series`),
+      play: $(`#${id}-play`), explore: $(`#${id}-explore`), speed: $(`#${id}-speed`), volume: $(`#${id}-volume`), series: $(`#${id}-series`),
       eyes: $(`#${id}-eyes`), fill: $(`#${id}-fill`), readout: $(`#${id}-readout`), cc: $(`#${id}-cc`),
     };
     // detail 0: a keyboard or screen reader activation, not a mouse click (see play()).
     this.el.play.addEventListener("click", (e) => this.toggle({ wait: e.detail === 0 }));
     this.el.explore?.addEventListener("click", () => this.el.stage.focus());
     this.el.speed?.addEventListener("change", () => this.setSpeed(Number(this.el.speed.value)));
+    this.el.volume?.addEventListener("change", () => {
+      setVolume(this.el.volume.value);
+      // A sample note at the new volume (the middle of the range), unless the graph is playing.
+      if (!this.playing && this.sound.ensure()) this.sound.note(HERTZES[15], 0, 0.25);
+    });
     this.el.series?.addEventListener("change", () => this.setSeries(Number(this.el.series.value), true));
     this.el.eyes?.addEventListener("click", () => this.eyesClosed());
     // Arrow keys on the chart take over from a running sweep.
