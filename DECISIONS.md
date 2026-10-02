@@ -275,3 +275,4 @@ This session got the key and read the 14 remaining hard charts live (`gemini-3.5
 - **Privacy is stated.** In Chrome the audio goes to Google's speech service; the help text under the question box says so.
 - **Tested** with Playwright and a stand-in recognizer (interim then final text, errors, the V key, no API), and axe still reports zero violations with the button present.
 
+- **Website files are revalidated** (`Cache-Control: no-cache`). Without a header, Chrome cached the old `chart.js` after a redeploy, so the new voice button did not appear for a returning visitor. Every file is now checked with its ETag on load (a 304 when unchanged), so a redeploy reaches everyone at once.

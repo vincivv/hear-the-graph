@@ -346,4 +346,14 @@ async def http_error(request: Request, exc: HTTPException):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
-app.mount("/", StaticFiles(directory=WEB, html=True), name="web")
+class WebFiles(StaticFiles):
+    """The website. Browsers revalidate every file (a 304 when unchanged), so a redeploy reaches
+    visitors at once instead of after a heuristic cache lifetime."""
+
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp
+
+
+app.mount("/", WebFiles(directory=WEB, html=True), name="web")

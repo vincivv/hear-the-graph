@@ -127,7 +127,7 @@ Configuration is environment variables only (see [`.env.example`](.env.example) 
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                      # 214 tests: logic, API, live path with a fake client, Playwright end to end with axe
+pytest                      # 215 tests: logic, API, live path with a fake client, Playwright end to end with axe
 python eval/run_eval.py     # writes eval/results.md and eval/results.json
 python tools/build_fixtures.py   # rebuilds fixture data from the answer keys
 python tools/replay_cache.py     # replays cached live readings through the trust layer, no API calls

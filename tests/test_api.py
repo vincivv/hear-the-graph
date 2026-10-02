@@ -144,3 +144,11 @@ def test_forwarded_for_uses_the_entry_the_proxy_added():
 
     req = SimpleNamespace(headers={"x-forwarded-for": "6.6.6.6, 203.0.113.9"}, client=None)
     assert client_id(req) == "203.0.113.9"
+
+
+def test_website_files_are_revalidated_so_a_redeploy_reaches_visitors(client):
+    for path in ("/", "/js/views/chart.js", "/css/app.css"):
+        r = client.get(path)
+        assert r.status_code == 200 and r.headers["cache-control"] == "no-cache", path
+    etag = client.get("/js/listen.js").headers["etag"]
+    assert client.get("/js/listen.js", headers={"If-None-Match": etag}).status_code == 304
