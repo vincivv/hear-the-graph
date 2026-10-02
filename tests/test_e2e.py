@@ -158,20 +158,23 @@ def test_question_is_answered_from_data(browser, base):
 # A stand-in for the browser's speech recognition: says window.__speech.text (interim first,
 # then final), or fails with window.__speech.error. Records how often it was started.
 FAKE_SPEECH = """
-window.__speech = { text: "what is the rate at step seven", error: "", starts: 0 };
+window.__speech = { text: "what is the rate at step seven", error: "", starts: 0, stall: false, stopped: false };
 window.webkitSpeechRecognition = class {
   start() {
     window.__speech.starts++;
     const s = window.__speech, res = (t, fin) => Object.assign([{ transcript: t }], { isFinal: fin });
+    this.onstart?.();
     setTimeout(() => {
-      this.onstart?.();
+      this.onaudiostart?.();
       if (s.error) { this.onerror?.({ error: s.error }); this.onend?.(); return; }
       const half = s.text.split(" ").slice(0, 3).join(" ");
       this.onresult?.({ results: [res(half, false)] });
+      // stall: the full text arrives as interim and the recognizer never finishes on its own
+      if (s.stall) { setTimeout(() => this.onresult?.({ results: [res(s.text, false)] }), 100); return; }
       setTimeout(() => { this.onresult?.({ results: [res(s.text, true)] }); this.onend?.(); }, 150);
     }, 50);
   }
-  stop() {}
+  stop() { if (window.__speech.stall) { window.__speech.stopped = true; this.onend?.(); } }
   abort() { this.onerror?.({ error: "aborted" }); this.onend?.(); }
 };
 window.SpeechRecognition = window.webkitSpeechRecognition;
@@ -196,6 +199,14 @@ def test_question_asked_by_voice(browser, base):
     page.wait_for_function("document.querySelector('#announcer').textContent.startsWith('You asked: what is the rate')")
     assert "45 mol/s" in page.text_content("#announcer")
     assert page.text_content("#ask-voice") == "Ask by voice" and not page.is_visible("#voice-status")
+    # A recognizer that stalls without a final result is stopped after a quiet pause, and what
+    # it heard is still asked.
+    page.evaluate("window.__speech.stall = true; window.__speech.text = 'what is the rate at step six'")
+    page.click("#ask-voice")
+    page.wait_for_function("document.querySelectorAll('.answers li').length === 2", timeout=8000)
+    assert page.evaluate("window.__speech.stopped")
+    assert page.text_content(".answers li .q") == "You asked: what is the rate at step six"
+    assert "40.3 mol/s" in page.text_content(".answers li .a")
     page.close()
 
 
@@ -208,8 +219,8 @@ def test_voice_shortcut_on_the_chart_and_microphone_errors(browser, base):
     page.focus("[id$='-stage']")
     page.keyboard.press("v")
     page.wait_for_function("window.__speech.starts === 1")
-    page.wait_for_selector("#voice-status:not([hidden])")
-    assert "microphone is blocked" in page.text_content("#voice-status")
+    page.wait_for_function("document.querySelector('#voice-status').textContent.includes('microphone is blocked')")
+    assert page.is_visible("#voice-status")
     page.wait_for_function("document.querySelector('#announcer-assertive').textContent.includes('microphone is blocked')")
     page.evaluate("window.__speech.error = 'no-speech'")
     page.click("#ask-voice")

@@ -305,12 +305,13 @@ export async function renderChart(ctx, id) {
     const label = voiceBtn.querySelector(".voice-label");
     voice = new VoiceInput({
       sound: player.sound,
-      onStart: () => {
+      onOpening: () => {
         voiceBtn.classList.add("listening");
         label.textContent = "Stop listening";
         voiceStatus.hidden = false;
-        voiceStatus.textContent = "Listening. Speak your question.";
+        voiceStatus.textContent = "Starting the microphone. Speak after the tone.";
       },
+      onStart: () => { voiceStatus.textContent = "Listening. Speak your question."; },
       onInterim: (text) => { input.value = text; },
       onEnd: () => {
         voiceBtn.classList.remove("listening");

@@ -4,12 +4,17 @@
 //
 // Nothing is spoken when listening starts, because the microphone would pick up the screen reader
 // or the built-in voice. A short rising tone means "speak now"; a falling tone means "done".
+// The tone waits for the microphone to deliver audio ("audiostart"), which was measured to take
+// up to 4 s after "start" (a Bluetooth or Continuity microphone), so the first words are not lost.
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 export function canListen() { return Boolean(Recognition); }
 
 const MAX_LISTEN_MS = 15000;
+// Recognizers sometimes stall after the last word without ever sending a final result; stop
+// (which finalizes) once no new words have come for this long.
+const QUIET_MS = 2000;
 
 const ERRORS = {
   "not-allowed": "The microphone is blocked for this site. Allow it in your browser's site settings, or type your question.",
@@ -23,11 +28,12 @@ const ERRORS = {
 export class VoiceInput {
   /**
    * sound: the player's Sound, for the start and stop tones.
-   * onStart(), onInterim(text), onFinal(text), onEnd(), onError(message): what the page shows.
+   * onOpening() (waiting for the microphone), onStart() (speak now), onInterim(text),
+   * onFinal(text), onEnd(), onError(message): what the page shows.
    */
-  constructor({ sound, onStart, onInterim, onFinal, onEnd, onError }) {
+  constructor({ sound, onOpening, onStart, onInterim, onFinal, onEnd, onError }) {
     this.sound = sound;
-    this.cb = { onStart, onInterim, onFinal, onEnd, onError };
+    this.cb = { onOpening, onStart, onInterim, onFinal, onEnd, onError };
     this.rec = null;
     this.listening = false;
   }
@@ -53,8 +59,11 @@ export class VoiceInput {
     rec.continuous = false;
     rec.maxAlternatives = 1;
     let final = "";
+    let heard = ""; // final and interim text so far
     let error = "";
-    rec.onstart = () => { this._tone(true); this.cb.onStart?.(); };
+    let open = false;
+    rec.onstart = () => { this.cb.onOpening?.(); };
+    rec.onaudiostart = () => { open = true; this._tone(true); this.cb.onStart?.(); };
     rec.onresult = (e) => {
       let interim = "";
       final = "";
@@ -62,17 +71,21 @@ export class VoiceInput {
         if (r.isFinal) final += r[0].transcript;
         else interim += r[0].transcript;
       }
-      this.cb.onInterim?.((final + interim).trim());
+      heard = (final + interim).trim();
+      this.cb.onInterim?.(heard);
+      clearTimeout(this.quiet);
+      this.quiet = setTimeout(() => this.stop(), QUIET_MS);
     };
     rec.onerror = (e) => { error = e.error || "unknown"; };
     rec.onend = () => {
       clearTimeout(this.timer);
-      const was = this.listening;
+      clearTimeout(this.quiet);
       this.listening = false;
       this.rec = null;
-      if (was) this._tone(false);
+      if (open) this._tone(false);
       this.cb.onEnd?.();
-      const text = final.trim();
+      // Ended without a final result (stopped, or a stalled recognizer): ask what was heard.
+      const text = final.trim() || (error === "aborted" ? "" : heard);
       if (text) this.cb.onFinal?.(text);
       else if (error === "aborted") { /* stopped on purpose */ }
       else this.cb.onError?.(ERRORS[error] || ERRORS["no-speech"]);
