@@ -10,7 +10,7 @@ Lecture slides are full of charts. Screen readers can already ask an AI to descr
 
 Hear the Graph adds two things:
 
-1. **Exploration.** The chart becomes sound and data: a sweep where pitch follows the value and the sound pans from left to right, arrow-key stepping with every value spoken, jumps to the maximum and minimum, a summary, and questions answered by calculation.
+1. **Exploration.** The chart becomes sound and data: a sweep where pitch follows the value and the sound pans from left to right (pressing play says what the lowest and highest notes stand for, and warns when the axis does not start at zero), arrow-key stepping with every value spoken, jumps to the maximum and minimum, a summary, and questions answered by calculation.
 2. **A trust layer.** Every chart is read twice by different methods and checked against its own pixels. Each point gets a confidence, each chart gets a level (high, medium, low), and the student hears the reason and which regions are uncertain. Uncertain points are announced as uncertain, and get a soft hiss in the sound.
 
 ## How it works
@@ -127,7 +127,7 @@ Configuration is environment variables only (see [`.env.example`](.env.example) 
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                      # 215 tests: logic, API, live path with a fake client, Playwright end to end with axe
+pytest                      # 216 tests: logic, API, live path with a fake client, Playwright end to end with axe
 python eval/run_eval.py     # writes eval/results.md and eval/results.json
 python tools/build_fixtures.py   # rebuilds fixture data from the answer keys
 python tools/replay_cache.py     # replays cached live readings through the trust layer, no API calls

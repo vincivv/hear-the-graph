@@ -144,6 +144,35 @@ def test_sample_pdf_lists_four_charts(browser, base):
     page.close()
 
 
+def test_playing_says_what_the_notes_stand_for(browser, base):
+    page = browser.new_page()
+    # An axis from about 49 to 73: the pitch range is stated, with a warning that it is not zero-based.
+    open_sample(page, base, "two-lines")
+    page.wait_for_selector("#summary-text", timeout=20000)
+    assert "not zero" in page.text_content("#baseline-note")
+    page.click("button.play")
+    page.wait_for_function("document.querySelector('#announcer').textContent.startsWith('Playing')")
+    said = page.text_content("#announcer")
+    assert "Low notes are 4" in said and "high notes are 7" in said and "%" in said
+    assert "not zero, so changes sound bigger than they are" in said
+    time.sleep(0.6)  # let the playhead move, so play continues instead of starting over
+    page.click("button.play")  # pause
+    page.wait_for_function("document.querySelector('#announcer').textContent === 'Paused.'")
+    page.click("button.play")  # resume: no repetition
+    page.wait_for_function("document.querySelector('#announcer').textContent === 'Resuming.'")
+    page.click("#read-summary")
+    page.wait_for_function("document.querySelector('#announcer').textContent.includes('not zero')")
+    # An axis that starts near zero: the range is stated, no warning.
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#summary-text", timeout=20000)
+    assert page.query_selector("#baseline-note") is None
+    page.click("button.play")
+    page.wait_for_function("document.querySelector('#announcer').textContent.startsWith('Playing')")
+    said = page.text_content("#announcer")
+    assert "Low notes are" in said and "mol/s" in said and "not zero" not in said
+    page.close()
+
+
 def test_question_is_answered_from_data(browser, base):
     page = browser.new_page()
     open_sample(page, base, "two-lines")

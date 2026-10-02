@@ -263,6 +263,8 @@ export async function renderChart(ctx, id) {
   main.querySelector("#read-confidence").addEventListener("click", () => player.readConfidence());
 
   main.querySelector("#read-summary").addEventListener("click", () => player.readSummary());
+  const baseline = player.baselineText();
+  if (baseline) main.querySelector("#summary-text").insertAdjacentHTML("afterend", `<p class="baseline-note small" id="baseline-note">${esc(baseline)}</p>`);
 
   const form = main.querySelector("#ask-form");
   const input = main.querySelector("#question");

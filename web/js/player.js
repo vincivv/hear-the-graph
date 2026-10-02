@@ -37,7 +37,7 @@ export class ChartPlayer {
     const n = chart.series.reduce((a, s) => a + s.points.length, 0);
     this.el.readout.innerHTML = this.opts.variant === "hero"
       ? `<span class="soft">${n} points. Press "Play graph" to listen.</span>`
-      : `<span class="soft">${n} points, ${esc(this.fmt.xName.toLowerCase())} ${esc(this.fmt.fx(s0.points[0]))} to ${esc(this.fmt.fx(s0.points[s0.points.length - 1]))}. Focus the chart and use the arrow keys to step through them.</span>`;
+      : `<span class="soft">${n} points, ${esc(this.fmt.xName.toLowerCase())} ${esc(this.fmt.fx(s0.points[0]))} to ${esc(this.fmt.fx(s0.points[s0.points.length - 1]))}. ${esc(this.scaleText())} Focus the chart and use the arrow keys to step through them.</span>`;
   }
 
   // ---------- geometry ----------
@@ -69,6 +69,25 @@ export class ChartPlayer {
         }
       });
     }
+  }
+
+  /** What the lowest and highest notes stand for: pitch is spread over the y axis. */
+  scaleText() {
+    const { fy } = this.fmt;
+    return `Low notes are ${fy(this.ymin)}, high notes are ${fy(this.ymax)}${this.log ? ", on a logarithmic scale" : ""}.`;
+  }
+
+  /**
+   * An axis that stops well short of zero makes small changes sound big (49 to 73 fills the whole
+   * pitch range). Said once per chart, when it is first played, and in the summary.
+   */
+  baselineText() {
+    if (this.log || this.chart.y_axis.scale === "category") return "";
+    const range = this.ymax - this.ymin;
+    const { fy } = this.fmt;
+    if (this.ymin > 0 && this.ymin > 0.25 * range) return `The axis starts at ${fy(this.ymin)}, not zero, so changes sound bigger than they are.`;
+    if (this.ymax < 0 && -this.ymax > 0.25 * range) return `The axis ends at ${fy(this.ymax)}, not zero, so changes sound bigger than they are.`;
+    return "";
   }
 
   pct(y) {
@@ -214,7 +233,7 @@ export class ChartPlayer {
   // ---------- spoken extras ----------
   readSummary() {
     const s = this.chart.summary?.text;
-    announce(s || "No summary is available for this chart.");
+    announce(s ? [s, this.baselineText()].filter(Boolean).join(" ") : "No summary is available for this chart.");
   }
 
   readConfidence() {
@@ -283,7 +302,13 @@ export class ChartPlayer {
       const s = this.chart.series[this.si];
       const first = s.points[0], last = s.points[s.points.length - 1];
       const what = this.chart.series.length > 1 ? `${s.name}, ` : "";
-      announce(startFrom > 0 ? "Resuming." : `Playing ${what}${this.fmt.xName} ${this.fmt.fx(first)} to ${this.fmt.fx(last)}.`);
+      let text = "Resuming.";
+      if (startFrom === 0) {
+        const warn = this.baselineWarned ? "" : this.baselineText();
+        this.baselineWarned = true;
+        text = [`Playing ${what}${this.fmt.xName} ${this.fmt.fx(first)} to ${this.fmt.fx(last)}.`, this.scaleText(), warn].filter(Boolean).join(" ");
+      }
+      announce(text);
     }
     const tick = () => {
       if (!this.playing) return;

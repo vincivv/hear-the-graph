@@ -278,3 +278,10 @@ This session got the key and read the 14 remaining hard charts live (`gemini-3.5
 - **Tested** with Playwright and a stand-in recognizer (interim then final text, errors, the V key, no API), and axe still reports zero violations with the button present.
 
 - **Website files are revalidated** (`Cache-Control: no-cache`). Without a header, Chrome cached the old `chart.js` after a redeploy, so the new voice button did not appear for a returning visitor. Every file is now checked with its ETag on load (a 304 when unchanged), so a redeploy reaches everyone at once.
+
+## Saying what the pitch stands for
+
+- **Pitch is relative, so the scale is spoken.** Pitch is spread over the y axis, so a note says "higher than the others", not a number: 10 sounds low on a 0 to 50 axis and is the lowest note on a 10 to 50 axis. Pressing play (from the start) now says "Low notes are (axis bottom), high notes are (axis top)", with "on a logarithmic scale" for a log axis. The same sentence is in the player's readout. The values are the bounds the notes are actually mapped to (the plot's axis range, widened to the data), in the chart's unit, so the arrow-key notes and the sweep agree with what is said.
+- **A warning when the axis stops well short of zero.** A 49 to 73 axis turns a 5-point change into a big swing in pitch, the audio version of a truncated bar chart. When the bottom of the axis is above zero by more than a quarter of the axis range (or the top is below zero by as much), the first play, the spoken summary and a note under the summary say "The axis starts at 48.6%, not zero, so changes sound bigger than they are." Said once per chart when playing, so repeated plays stay short. Log axes never get it.
+- **Not added yet: reference tones** (a beep for the bottom and the top before the first play). It would give the ear a ruler, but it delays every first play; to be decided after testing with users.
+

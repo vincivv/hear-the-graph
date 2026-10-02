@@ -665,3 +665,4 @@ kbd { font: inherit; font-weight: 700; font-size: 0.9em; border: 1px solid var(-
   .btn-voice.listening svg { animation: voice-pulse 1.1s ease-in-out infinite; }
   @keyframes voice-pulse { 50% { transform: scale(1.18); } }
 }
+.baseline-note { margin: 0.6rem 0 0; font-weight: 600; }
