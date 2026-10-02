@@ -4,7 +4,7 @@
 
 import { c2mChart } from "../vendor/chart2music.mjs";
 import { Sound, HERTZES, pitchIndex, panFor } from "./audio.js";
-import { announce, mirrorToVoice } from "./announce.js";
+import { announce, announceThen, isVoiceOn, mirrorToVoice } from "./announce.js";
 import { esc, chartFormat, reducedMotion, typeName } from "./util.js";
 
 const SPEEDS = [["0.5", "Half speed"], ["1", "Normal speed"], ["1.5", "1.5 times"], ["2", "Double speed"]];
@@ -159,7 +159,8 @@ export class ChartPlayer {
       play: $(`#${id}-play`), explore: $(`#${id}-explore`), speed: $(`#${id}-speed`), series: $(`#${id}-series`),
       eyes: $(`#${id}-eyes`), fill: $(`#${id}-fill`), readout: $(`#${id}-readout`), cc: $(`#${id}-cc`),
     };
-    this.el.play.addEventListener("click", () => this.toggle());
+    // detail 0: a keyboard or screen reader activation, not a mouse click (see play()).
+    this.el.play.addEventListener("click", (e) => this.toggle({ wait: e.detail === 0 }));
     this.el.explore?.addEventListener("click", () => this.el.stage.focus());
     this.el.speed?.addEventListener("change", () => this.setSpeed(Number(this.el.speed.value)));
     this.el.series?.addEventListener("change", () => this.setSeries(Number(this.el.series.value), true));
@@ -210,7 +211,7 @@ export class ChartPlayer {
           if (cu) self.focusPoint(cu.si, cu.pi, { fromExplorer: true });
         },
         customHotkeys: [
-          { key: { key: "p" }, title: "Play or pause the whole graph", callback: () => self.toggle() },
+          { key: { key: "p" }, title: "Play or pause the whole graph", callback: () => self.toggle({ wait: true }) },
           { key: { key: "s" }, title: "Read the summary", callback: () => self.readSummary() },
           { key: { key: "c" }, title: "Read the confidence", callback: () => self.readConfidence() },
           ...(self.opts.onAsk ? [{ key: { key: "v" }, title: "Ask a question by voice", callback: () => { self.pause({ silent: true }); self.opts.onAsk(); } }] : []),
@@ -272,7 +273,7 @@ export class ChartPlayer {
     const wasPlaying = this.playing;
     if (wasPlaying) this.pause({ silent: true });
     this.speed = v;
-    if (wasPlaying) this.play();
+    if (wasPlaying) this.play({ quiet: true });
   }
 
   setSeries(si, announceIt) {
@@ -285,31 +286,58 @@ export class ChartPlayer {
     if (wasPlaying) this.play();
   }
 
-  toggle() { this.playing ? this.pause() : this.play(); }
+  /** P and the play button: start, pause, or skip the spoken introduction ("Start now"). */
+  toggle({ wait = false } = {}) { this.waiting ? this._startSound() : this.playing ? this.pause() : this.play({ wait }); }
 
-  play({ onEnd = null, quiet = false } = {}) {
+  /**
+   * Play the graph. Unless `quiet`, what is about to play is announced first ("Playing ... Low
+   * notes are ..."), or `intro` if given.
+   *
+   * The sound waits until that has been said, so speech and sound never overlap, when something
+   * is speaking it: the built-in voice (its end is known exactly), or a screen reader, assumed
+   * when play came from the keyboard or a screen reader's activate command (`wait`). A page
+   * cannot detect a screen reader, so a mouse click starts the sound at once rather than leave
+   * a sighted user in silence. While waiting, the play button reads "Start now".
+   */
+  play({ onEnd = null, quiet = false, intro = "", wait = false } = {}) {
     if (!this.sound.ensure()) { announce("Sound is not available in this browser."); return; }
+    if (this.waiting) { this._startSound(); return; } // "Start now"
     if (this.progress >= 0.999) this.progress = 0;
+    this.onEnd = onEnd;
+    this.playing = true;
+    const text = intro || (quiet ? "" : this._introText());
+    if (text && (wait || isVoiceOn())) {
+      this._waitLabel();
+      this.waiting = announceThen(text, () => this._startSound());
+      return;
+    }
+    if (text) announce(text);
+    this._startSound();
+  }
+
+  _introText() {
+    if (this.progress > 0) return "Resuming.";
+    const s = this.chart.series[this.si];
+    const first = s.points[0], last = s.points[s.points.length - 1];
+    const what = this.chart.series.length > 1 ? `${s.name}, ` : "";
+    const warn = this.baselineWarned ? "" : this.baselineText();
+    this.baselineWarned = true;
+    return [`Playing ${what}${this.fmt.xName} ${this.fmt.fx(first)} to ${this.fmt.fx(last)}.`, this.scaleText(), warn].filter(Boolean).join(" ");
+  }
+
+  _waitLabel() {
+    this.el.play.innerHTML = `${ICON_PLAY}<span class="label">Start now</span>`;
+    this.el.play.setAttribute("aria-label", "Start the sound now");
+  }
+
+  _startSound() {
+    if (this.waiting) { this.waiting(); this.waiting = null; }
+    if (!this.playing) return;
     const plan = this.plan(this.si);
     this.planNow = plan;
     const D = this.baseDuration(this.si) / this.speed;
-    const startFrom = this.progress;
-    this.handle = this.sound.sweep(plan, startFrom, D);
-    this.playing = true;
-    this.onEnd = onEnd;
+    this.handle = this.sound.sweep(plan, this.progress, D);
     this._playLabel(true);
-    if (!quiet) {
-      const s = this.chart.series[this.si];
-      const first = s.points[0], last = s.points[s.points.length - 1];
-      const what = this.chart.series.length > 1 ? `${s.name}, ` : "";
-      let text = "Resuming.";
-      if (startFrom === 0) {
-        const warn = this.baselineWarned ? "" : this.baselineText();
-        this.baselineWarned = true;
-        text = [`Playing ${what}${this.fmt.xName} ${this.fmt.fx(first)} to ${this.fmt.fx(last)}.`, this.scaleText(), warn].filter(Boolean).join(" ");
-      }
-      announce(text);
-    }
     const tick = () => {
       if (!this.playing) return;
       const h = this.handle;
@@ -325,6 +353,7 @@ export class ChartPlayer {
   pause({ silent = false } = {}) {
     if (!this.playing) return;
     this.playing = false;
+    if (this.waiting) { this.waiting(); this.waiting = null; this._playLabel(false); return; }
     cancelAnimationFrame(this.raf);
     this.sound.stopAll();
     this._playLabel(false);
@@ -414,7 +443,8 @@ export class ChartPlayer {
     btn.addEventListener("click", reveal);
     this.progress = 0;
     this.play({
-      quiet: true,
+      intro: "Eyes-closed mode. The screen is blank. Listen to the graph. Press Escape to stop.",
+      wait: true, // only sound follows, so the introduction is always heard first
       onEnd: () => {
         cancelAnimationFrame(barRaf);
         bar.style.width = "100%";
@@ -426,7 +456,6 @@ export class ChartPlayer {
     });
     const barTick = () => { bar.style.width = `${(this.progress * 100).toFixed(1)}%`; if (this.playing) barRaf = requestAnimationFrame(barTick); };
     barRaf = requestAnimationFrame(barTick);
-    announce("Eyes-closed mode. The screen is blank. Listen to the graph. Press Escape to stop.");
   }
 
   // ---------- verification marks ----------

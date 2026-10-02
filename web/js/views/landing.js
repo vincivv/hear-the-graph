@@ -280,10 +280,10 @@ export async function renderLanding(ctx) {
   } catch (e) {
     holder.innerHTML = `<p class="soft">The example chart could not be loaded.</p>`;
   }
-  main.querySelector("#hero-listen").addEventListener("click", () => {
+  main.querySelector("#hero-listen").addEventListener("click", (e) => {
     if (!player) return;
     player.el.play.focus();
-    if (!player.playing) player.play();
+    if (!player.playing) player.play({ wait: e.detail === 0 });
     else announce("Already playing.");
   });
 

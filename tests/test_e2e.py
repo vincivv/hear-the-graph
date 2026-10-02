@@ -173,6 +173,57 @@ def test_playing_says_what_the_notes_stand_for(browser, base):
     page.close()
 
 
+def playhead_x(page):
+    return float(page.get_attribute(".playhead-line", "x1") or 0)
+
+
+def test_keyboard_play_waits_for_the_introduction(browser, base):
+    page = browser.new_page()
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#summary-text", timeout=20000)
+    page.focus("button.play")
+    page.keyboard.press("Enter")  # a screen reader user: the introduction is said before the sound
+    page.wait_for_function("document.querySelector('#announcer').textContent.startsWith('Playing')")
+    assert page.text_content("button.play") == "Start now"
+    x0 = playhead_x(page)
+    time.sleep(1.0)
+    assert playhead_x(page) == x0  # silent while the introduction is being said
+    page.keyboard.press("Enter")  # Start now: skip the rest of the wait
+    page.wait_for_function("document.querySelector('button.play').textContent === 'Pause'", timeout=2000)
+    time.sleep(0.6)
+    assert playhead_x(page) > x0
+    page.keyboard.press("Enter")  # pause
+    page.wait_for_function("document.querySelector('button.play').textContent === 'Play graph'")
+    # Without skipping, the sound starts by itself after the estimated speaking time.
+    open_sample(page, base, "bars")
+    page.wait_for_selector("#summary-text", timeout=20000)
+    page.focus("button.play")
+    page.keyboard.press("Enter")
+    page.wait_for_function("document.querySelector('button.play').textContent === 'Start now'")
+    page.wait_for_function("document.querySelector('button.play').textContent === 'Pause'", timeout=12000)
+    page.close()
+
+
+def test_built_in_voice_finishes_before_the_sound_starts(browser, base):
+    page = browser.new_page()
+    # Stand-in voice: records what was spoken and finishes each utterance 400 ms later.
+    page.add_init_script("""
+      localStorage.setItem('voice', 'on');
+      window.__said = [];
+      const synth = { speaking: false, cancel() {}, getVoices: () => [],
+        speak(u) { window.__said.push({ text: u.text, at: performance.now() }); setTimeout(() => { u.onend?.(); window.__said.at(-1).end = performance.now(); }, 400); } };
+      Object.defineProperty(window, 'speechSynthesis', { value: synth });
+      window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+    """)
+    open_sample(page, base, "clean-line")
+    page.wait_for_selector("#summary-text", timeout=20000)
+    page.click("button.play")  # even a mouse click waits when the app itself is speaking
+    page.wait_for_function("window.__said.some(s => s.text.startsWith('Playing'))")
+    assert page.text_content("button.play") == "Start now"
+    page.wait_for_function("document.querySelector('button.play').textContent === 'Pause'", timeout=3000)
+    page.close()
+
+
 def test_question_is_answered_from_data(browser, base):
     page = browser.new_page()
     open_sample(page, base, "two-lines")
