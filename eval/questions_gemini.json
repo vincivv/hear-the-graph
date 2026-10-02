@@ -1,0 +1,171 @@
+[
+ {
+  "sample": "clean-line",
+  "question": "What is the highest reaction rate?",
+  "expected": "max",
+  "operation": "max",
+  "arguments": {
+   "series": "Rate"
+  },
+  "answer": "The highest value is 45 mol/s, at step 7.",
+  "chooser": "gemini",
+  "chooser_note": "Gemini chose the calculation; code computed the answer.",
+  "answerable": true,
+  "seconds": 10.97
+ },
+ {
+  "sample": "clean-line",
+  "question": "What is the rate at step 3?",
+  "expected": "value_at",
+  "operation": "value_at",
+  "arguments": {
+   "series": "Rate",
+   "x": "3"
+  },
+  "answer": "10.5 mol/s at step 3.",
+  "chooser": "gemini",
+  "chooser_note": "Gemini chose the calculation; code computed the answer.",
+  "answerable": true,
+  "seconds": 2.44
+ },
+ {
+  "sample": "clean-line",
+  "question": "At which step does the rate first go above 30 mol/s?",
+  "expected": "x_where",
+  "operation": "x_where",
+  "arguments": {
+   "series": "Rate",
+   "y": 30.0
+  },
+  "answer": "It reaches 30 mol/s twice: about step 5.06 (between 5 and 6) and about step 8.94 (between 8 and 9).",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.17
+ },
+ {
+  "sample": "clean-line",
+  "question": "How fast does the rate climb between step 2 and step 5?",
+  "expected": "slope",
+  "operation": "slope",
+  "arguments": {
+   "series": "Rate",
+   "from": "2",
+   "to": "5"
+  },
+  "answer": "From step 2 to step 5, the average rate of change is 7.5 mol/s per step.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "two-lines",
+  "question": "Which program had the higher graduation rate in 2020?",
+  "expected": "compare",
+  "operation": "compare",
+  "arguments": {
+   "series_a": "Program A",
+   "series_b": "Program B",
+   "x": "2020"
+  },
+  "answer": "In 2020, Program A is 55.5% and Program B is 60.3%. Program B is higher by 4.8 percentage points.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "two-lines",
+  "question": "Do the two programs ever cross?",
+  "expected": "crossings",
+  "operation": "crossings",
+  "arguments": {
+   "series_a": "Program A",
+   "series_b": "Program B"
+  },
+  "answer": "Program A and Program B cross 1 time: between 2020 and 2021.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "two-lines",
+  "question": "What is the average graduation rate of Program B?",
+  "expected": "average",
+  "operation": "average",
+  "arguments": {
+   "series": "Program B"
+  },
+  "answer": "Program B: the average of the 11 plotted values is 59.1%.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "bars",
+  "question": "Which day had the least rain?",
+  "expected": "min",
+  "operation": "min",
+  "arguments": {},
+  "answer": "The lowest value is 2.1 mm, for Wed.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "bars",
+  "question": "What is the spread between the wettest and the driest day?",
+  "expected": "range",
+  "operation": "range",
+  "arguments": {},
+  "answer": "Values go from 2.1 mm for Wed to 8.9 mm for Sat, a range of 6.8 mm.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "clean-line",
+  "question": "Describe the overall shape of this chart.",
+  "expected": "describe",
+  "operation": "describe",
+  "arguments": {},
+  "answer": "A line chart, \"Reaction Rate vs Temperature Step\", with one series of 13 points. Across: Step, from 0 to 12. Up: Rate. Values range from 5.1 mol/s to 45 mol/s. It starts at 5.1 mol/s at step 0, rises to a peak of 45 mol/s at step 7, then falls to 6.9 mol/s at step 12. Maximum 45 mol/s at step 7; minimum 5.1 mol/s at step 0. High confidence.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": true,
+  "seconds": 0.0
+ },
+ {
+  "sample": "bars",
+  "question": "How much rain will fall next Sunday?",
+  "expected": "cannot_answer",
+  "operation": "cannot_answer",
+  "arguments": {
+   "reason": "The chart only shows the values drawn on it, so it cannot tell what comes next."
+  },
+  "answer": "I can't answer that from this chart. The chart only shows the values drawn on it, so it cannot tell what comes next. Try asking for the maximum, the minimum, the value at a point, when it reaches a value, the trend or rate of change between two points, the average, or a comparison of two series.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": false,
+  "seconds": 0.0
+ },
+ {
+  "sample": "two-lines",
+  "question": "Who collected this data?",
+  "expected": "cannot_answer",
+  "operation": "cannot_answer",
+  "arguments": {
+   "reason": "I could not match this question to a calculation on this chart."
+  },
+  "answer": "I can't answer that from this chart. I could not match this question to a calculation on this chart. Try asking for the maximum, the minimum, the value at a point, when it reaches a value, the trend or rate of change between two points, the average, or a comparison of two series.",
+  "chooser": "rules",
+  "chooser_note": "Gemini was busy, so simple rules matched the question.",
+  "answerable": false,
+  "seconds": 0.0
+ }
+]

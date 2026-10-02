@@ -1,0 +1,1 @@
+{"response": {"charts": [{"box_2d": [38.0, 17.0, 966.0, 981.0], "chart_type": "line", "title": "Reaction Rate vs Temperature Step"}]}, "model": "gemini-3.8-flash", "created": 1790971029.434, "task": "detect", "content_hash": "28dbf30c1ebf6ee4fa8e11518cdd100c30bde27dc81da1fdf428c153e6a47687"}

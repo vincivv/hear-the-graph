@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hear the Graph</title>
+  <meta name="description" content="Hear and explore the charts in your lecture slides, with a clear warning when the numbers cannot be trusted.">
+  <meta name="theme-color" content="#0C0E2E">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/app.css">
+  <script>
+    // Apply a saved theme before first paint to avoid a flash.
+    try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#/" aria-label="Hear the Graph, home">
+        <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="38" height="38" rx="10" fill="#14174A"/>
+          <polyline points="7,28 12.5,22.5 17,25.5 23,13 28,18 33,10" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="23" y1="6" x2="23" y2="34" stroke="#FFC72C" stroke-width="3.2" stroke-linecap="round"/>
+          <circle cx="23" cy="13" r="3.6" fill="#FFC72C" stroke="#14174A" stroke-width="1.6"/>
+        </svg>
+        <span>Hear the Graph</span>
+      </a>
+      <nav class="nav-landing" aria-label="Main">
+        <ul>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#trust">Trust layer</a></li>
+          <li><a href="#accessibility">Accessibility</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost btn-sm app-only" id="shortcuts-button" aria-haspopup="dialog"><span class="label-long">Keyboard shortcuts</span><span class="label-short">Shortcuts</span></button>
+        <button type="button" class="btn btn-ghost btn-sm app-only" id="voice-button" aria-pressed="false">Built-in voice: off</button>
+        <button type="button" class="btn btn-ghost btn-icon" id="theme-button" aria-label="Theme: system. Change theme"></button>
+        <a class="btn btn-primary btn-sm landing-only" href="#/app">Open the app</a>
+        <a class="btn btn-secondary btn-sm app-only" href="#/app">New file</a>
+      </div>
+    </div>
+  </header>
+
+  <aside class="mode-banner" id="mode-banner" aria-labelledby="mode-banner-title" hidden>
+    <div class="container mode-inner"><strong id="mode-banner-title"></strong><p id="mode-banner-text"></p></div>
+  </aside>
+
+  <main id="main" tabindex="-1">
+    <noscript><p>Hear the Graph needs JavaScript to play sound and explore charts.</p></noscript>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <p class="footer-name">Hear the Graph</p>
+        <p>AI that lets a blind student hear a graph, and tells them when not to trust it.</p>
+      </div>
+      <nav aria-label="Footer">
+        <p class="footer-head">Product</p>
+        <ul>
+          <li><a href="#/">Overview</a></li>
+          <li><a href="#/app">Open the app</a></li>
+        </ul>
+      </nav>
+      <div>
+        <p class="footer-head">Privacy</p>
+        <p>No accounts. Your files are deleted after <span id="ttl">60</span> minutes, or when you choose "Delete my files now".</p>
+      </div>
+      <div>
+        <p class="footer-head">Credits</p>
+        <p>Sound and keyboard navigation by <a href="https://www.chart2music.com">Chart2Music</a>. Typeface Atkinson Hyperlegible Next by the Braille Institute. Chart reading by Gemini.</p>
+        <p class="small" id="backend-status"></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Polite and assertive live regions for everything the app says. -->
+  <div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+  <div id="announcer-assertive" class="visually-hidden" aria-live="assertive" aria-atomic="true"></div>
+
+  <dialog id="shortcuts-dialog" aria-labelledby="shortcuts-title">
+    <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+    <p>Single-key shortcuts work only while the chart has focus, so they never clash with your screen reader. Press <kbd>Tab</kbd> to reach the chart, or use the "Explore points" button.</p>
+    <table class="keys">
+      <caption class="visually-hidden">Chart shortcuts</caption>
+      <tbody>
+        <tr><th scope="row"><kbd>Left</kbd> <kbd>Right</kbd></th><td>Previous or next point, value spoken</td></tr>
+        <tr><th scope="row"><kbd>Home</kbd> <kbd>End</kbd></th><td>First or last point</td></tr>
+        <tr><th scope="row"><kbd>]</kbd> <kbd>[</kbd></th><td>Maximum or minimum of this series</td></tr>
+        <tr><th scope="row"><kbd>Page Up</kbd> <kbd>Page Down</kbd> or <kbd>Up</kbd> <kbd>Down</kbd></th><td>Switch series</td></tr>
+        <tr><th scope="row"><kbd>P</kbd></th><td>Play or pause the whole graph</td></tr>
+        <tr><th scope="row"><kbd>S</kbd></th><td>Read the summary</td></tr>
+        <tr><th scope="row"><kbd>C</kbd></th><td>Read the confidence and its reasons</td></tr>
+        <tr><th scope="row"><kbd>Shift</kbd> + <kbd>End</kbd></th><td>Play from here to the end, point by point</td></tr>
+        <tr><th scope="row"><kbd>Q</kbd> <kbd>E</kbd></th><td>Faster or slower point-by-point play</td></tr>
+        <tr><th scope="row"><kbd>Space</kbd></th><td>Repeat the current point</td></tr>
+        <tr><th scope="row"><kbd>H</kbd></th><td>Full list of Chart2Music keys</td></tr>
+        <tr><th scope="row"><kbd>Escape</kbd></th><td>Leave eyes-closed mode</td></tr>
+      </tbody>
+    </table>
+    <p>Sound: higher pitch means a higher value. Sound moves from your left ear to your right as x increases. A soft hiss on a point means its value is uncertain.</p>
+    <form method="dialog"><button class="btn btn-primary" type="submit">Close</button></form>
+  </dialog>
+</body>
+</html>

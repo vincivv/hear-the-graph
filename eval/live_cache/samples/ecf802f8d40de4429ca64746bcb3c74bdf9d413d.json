@@ -1,0 +1,1 @@
+{"response": {"charts": [{"box_2d": [38.0, 18.0, 968.0, 980.0], "chart_type": "line", "title": "Plant Height Over Time"}]}, "model": "gemini-3.8-flash", "created": 1790971031.434, "task": "detect", "content_hash": "91a6039622ea4ecf5b9bed464d917ca2891d9e16346ffb0bc36d870e41ddc82e"}

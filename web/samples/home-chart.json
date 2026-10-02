@@ -1,0 +1,383 @@
+{
+ "id": "home-c1",
+ "document_id": "home",
+ "index": 0,
+ "page": 1,
+ "bbox": [
+  0.0,
+  0.0,
+  840.0,
+  540.0
+ ],
+ "image_size": [
+  840,
+  540
+ ],
+ "status": "ok",
+ "error": "",
+ "retryable": false,
+ "chart_type": "line",
+ "title": "Reaction Rate vs Temperature Step",
+ "x_axis": {
+  "label": "Step",
+  "unit": "",
+  "min": -0.6,
+  "max": 12.6,
+  "scale": "linear",
+  "tick_count": 7,
+  "categories": []
+ },
+ "y_axis": {
+  "label": "Rate (mol/s)",
+  "unit": "mol/s",
+  "min": 3.0,
+  "max": 47.0,
+  "scale": "linear",
+  "tick_count": 9,
+  "categories": []
+ },
+ "has_markers": true,
+ "series": [
+  {
+   "name": "Rate",
+   "color": "#d62728",
+   "points": [
+    {
+     "x": 0.0,
+     "x_label": "0",
+     "y": 5.1,
+     "pixel": [
+      108.3,
+      450.7
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 4.919351,
+      "crosscheck_dy_pct": 0.41,
+      "crosscheck_dx_pct": 0.55,
+      "pixel_off_pct": 0.07
+     }
+    },
+    {
+     "x": 1.0,
+     "x_label": "1",
+     "y": 5.4,
+     "pixel": [
+      164.9,
+      447.8
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 5.230309,
+      "crosscheck_dy_pct": 0.39,
+      "crosscheck_dx_pct": 0.49,
+      "pixel_off_pct": 0.05
+     }
+    },
+    {
+     "x": 2.0,
+     "x_label": "2",
+     "y": 6.8,
+     "pixel": [
+      221.6,
+      434.2
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 6.642438,
+      "crosscheck_dy_pct": 0.36,
+      "crosscheck_dx_pct": 0.43,
+      "pixel_off_pct": 0.05
+     }
+    },
+    {
+     "x": 3.0,
+     "x_label": "3",
+     "y": 10.4,
+     "pixel": [
+      278.2,
+      399.4
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 10.25858,
+      "crosscheck_dy_pct": 0.32,
+      "crosscheck_dx_pct": 0.35,
+      "pixel_off_pct": 0.09
+     }
+    },
+    {
+     "x": 4.0,
+     "x_label": "4",
+     "y": 18.0,
+     "pixel": [
+      334.9,
+      325.7
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 17.880397,
+      "crosscheck_dy_pct": 0.27,
+      "crosscheck_dx_pct": 0.24,
+      "pixel_off_pct": 0.07
+     }
+    },
+    {
+     "x": 5.0,
+     "x_label": "5",
+     "y": 29.3,
+     "pixel": [
+      391.5,
+      216.2
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 29.208078,
+      "crosscheck_dy_pct": 0.21,
+      "crosscheck_dx_pct": 0.11,
+      "pixel_off_pct": 0.05
+     }
+    },
+    {
+     "x": 6.0,
+     "x_label": "6",
+     "y": 40.3,
+     "pixel": [
+      448.1,
+      109.6
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 40.235388,
+      "crosscheck_dy_pct": 0.15,
+      "crosscheck_dx_pct": 0.02,
+      "pixel_off_pct": 0.09
+     }
+    },
+    {
+     "x": 7.0,
+     "x_label": "7",
+     "y": 45.0,
+     "pixel": [
+      504.8,
+      64.1
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 44.953258,
+      "crosscheck_dy_pct": 0.11,
+      "crosscheck_dx_pct": 0.11,
+      "pixel_off_pct": 0.02
+     }
+    },
+    {
+     "x": 8.0,
+     "x_label": "8",
+     "y": 40.3,
+     "pixel": [
+      561.4,
+      109.6
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 40.256008,
+      "crosscheck_dy_pct": 0.1,
+      "crosscheck_dx_pct": 0.14,
+      "pixel_off_pct": 0.09
+     }
+    },
+    {
+     "x": 9.0,
+     "x_label": "9",
+     "y": 29.3,
+     "pixel": [
+      618.1,
+      216.2
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 29.248759,
+      "crosscheck_dy_pct": 0.12,
+      "crosscheck_dx_pct": 0.12,
+      "pixel_off_pct": 0.05
+     }
+    },
+    {
+     "x": 10.0,
+     "x_label": "10",
+     "y": 18.0,
+     "pixel": [
+      674.7,
+      325.7
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 17.94114,
+      "crosscheck_dy_pct": 0.13,
+      "crosscheck_dx_pct": 0.1,
+      "pixel_off_pct": 0.07
+     }
+    },
+    {
+     "x": 11.0,
+     "x_label": "11",
+     "y": 10.4,
+     "pixel": [
+      731.4,
+      399.4
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 10.339384,
+      "crosscheck_dy_pct": 0.14,
+      "crosscheck_dx_pct": 0.1,
+      "pixel_off_pct": 0.09
+     }
+    },
+    {
+     "x": 12.0,
+     "x_label": "12",
+     "y": 6.8,
+     "pixel": [
+      788.0,
+      434.2
+     ],
+     "confidence": 1.0,
+     "flags": [],
+     "checks": {
+      "beyond_axis_pct": 0.0,
+      "second_reading_y": 6.744419,
+      "crosscheck_dy_pct": 0.13,
+      "crosscheck_dx_pct": 0.14,
+      "pixel_off_pct": 0.05
+     }
+    }
+   ]
+  }
+ ],
+ "confidence": {
+  "level": "high",
+  "score": 1.0,
+  "message": "High confidence.",
+  "reasons": [
+   "Both readings agree within 0.4% of the axis for all 13 compared points.",
+   "Every point lies on the drawn line in the image."
+  ],
+  "uncertain_regions": [],
+  "risk_factors": [],
+  "signals": {
+   "sanity": {
+    "out_of_range": 0,
+    "bar_count_mismatch": false,
+    "out_of_range_points": []
+   },
+   "crosscheck": {
+    "compared": 13,
+    "agree": 13,
+    "minor": 0,
+    "disagree": 0,
+    "x_disagree": 0,
+    "missing": 0,
+    "max_dy_pct": 0.41,
+    "count_mismatch": [],
+    "overruled_by_image": 0
+   },
+   "pixel": {
+    "checked": 13,
+    "on_ink": 13,
+    "near": 0,
+    "off": 0,
+    "not_checked": 0,
+    "max_off_pct": 0.09,
+    "tolerance_pct": [
+     2.0,
+     5.0
+    ]
+   },
+   "chart_multiplier": 1.0,
+   "point_mean": 1.0,
+   "risk_limited": false,
+   "uncertain_points": 0,
+   "second_reading": "ok",
+   "image": {
+    "width": 840,
+    "height": 540,
+    "tilt_deg": 0.0,
+    "keystone_deg": 0.0,
+    "sharpness": 1146.58,
+    "n_lines": 11
+   },
+   "calibration": {
+    "x": {
+     "method": "ticks",
+     "ticks": 7,
+     "residual": 0.0004
+    },
+    "y": {
+     "method": "ticks",
+     "ticks": 9,
+     "residual": 0.0007
+    },
+    "snapped": {
+     "x": 7,
+     "y": 9
+    }
+   }
+  }
+ },
+ "summary": {
+  "text": "A line chart, \"Reaction Rate vs Temperature Step\", with one series of 13 points. Across: Step, from 0 to 12. Up: Rate (mol/s). Values range from 5.1 mol/s to 45 mol/s. It starts at 5.1 mol/s at step 0, rises to a peak of 45 mol/s at step 7, then falls to 6.8 mol/s at step 12. Maximum 45 mol/s at step 7; minimum 5.1 mol/s at step 0. High confidence.",
+  "sentences": [
+   "A line chart, \"Reaction Rate vs Temperature Step\", with one series of 13 points.",
+   "Across: Step, from 0 to 12.",
+   "Up: Rate (mol/s). Values range from 5.1 mol/s to 45 mol/s.",
+   "It starts at 5.1 mol/s at step 0, rises to a peak of 45 mol/s at step 7, then falls to 6.8 mol/s at step 12.",
+   "Maximum 45 mol/s at step 7; minimum 5.1 mol/s at step 0.",
+   "High confidence."
+  ]
+ },
+ "source": "fixture",
+ "source_note": "Known values for this example chart, not a live reading.",
+ "model": "fixture data (answer key)",
+ "backend": "",
+ "timings": {
+  "read_s": 0.0,
+  "read_source": "fixture",
+  "second_s": 0.0,
+  "second_source": "fixture",
+  "second_model": "fixture data (answer key)",
+  "readings_wall_s": 0.01,
+  "total_s": 0.12
+ },
+ "plot_area": [
+  70.2,
+  44.6,
+  825.0,
+  472.9
+ ],
+ "straightened": null
+}

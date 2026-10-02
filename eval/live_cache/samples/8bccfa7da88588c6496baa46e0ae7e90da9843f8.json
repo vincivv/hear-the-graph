@@ -1,0 +1,1 @@
+{"response": {"charts": [{"box_2d": [36.0, 18.0, 970.0, 980.0], "chart_type": "line", "title": "Radioactive Sample Remaining"}]}, "model": "gemini-3.8-flash", "created": 1790971033.434, "task": "detect", "content_hash": "416039a8c6d5f8fef02848984afdf2f77fd08836fb043e39709ebb28b614fd15"}

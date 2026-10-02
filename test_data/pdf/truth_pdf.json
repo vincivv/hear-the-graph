@@ -1,0 +1,36 @@
+{
+  "pages": [
+    {
+      "page": 1,
+      "charts": []
+    },
+    {
+      "page": 2,
+      "charts": [
+        "02_line_peak"
+      ]
+    },
+    {
+      "page": 3,
+      "charts": []
+    },
+    {
+      "page": 4,
+      "charts": [
+        "05_line_two_series"
+      ]
+    },
+    {
+      "page": 5,
+      "charts": [
+        "08_bar_decimal",
+        "07_bar_simple"
+      ]
+    },
+    {
+      "page": 6,
+      "charts": []
+    }
+  ],
+  "note": "chart names refer to entries in ../clean/truth.json"
+}
