@@ -1,0 +1,1 @@
+{"response": {"charts": [{"box_2d": [205.0, 157.0, 895.0, 782.0], "chart_type": "line", "title": "Graduation Rate by Program"}]}, "model": "gemini-3.5-flash", "created": 1790974755.160223, "task": "detect", "seconds": 6.36, "backend": "cloud", "content_hash": "a574507b99fbe4da75103b9cd07cb0bf7f43d60ca4186e5711fafaff742cd935", "prompt_version": "2026-10-02.1"}
